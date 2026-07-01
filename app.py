@@ -28,8 +28,11 @@
           
           <div class="main-illustration">
             <div class="emoji-group">            
+import streamlit as st
+
+# ✅ st.markdown과 unsafe_allow_html=True를 사용해야 합니다.
 st.markdown('<span class="animated-emoji">🦁</span>', unsafe_allow_html=True)
-              <span class="animated-emoji">🐨</span>
+st.markdown('<span class="animated-emoji">🐨</span>', unsafe_allow_html=True)
               <span class="animated-emoji">🐬</span>
               <span class="animated-emoji">🦊</span>
             </div>
