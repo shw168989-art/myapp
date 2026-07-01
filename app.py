@@ -1,178 +1,141 @@
-import streamlit as st
-import requests
-import pandas as pd
-import plotly.express as px
-from datetime import datetime
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>동물 캐릭터로 알아보는 나의 스트레스 대처 유형</title>
+  <!-- Google Fonts 연동 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <!-- CSS Stylesheet -->
+  <link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- 배경 데코레이션 블러 서클 -->
+    <div class="bg-circle bg-circle-1"></div>
+    <div class="bg-circle bg-circle-2"></div>
 
-# 페이지 설정
-st.set_page_config(page_title="팀 예산 관리 시스템", layout="wide", initial_sidebar_state="collapsed")
+    <main class="card-wrapper">
+      
+      <!-- 1. 홈 스크린 -->
+      <section id="screen-home" class="screen active">
+        <div class="home-content">
+          <div class="badge">Psychology Test</div>
+          <h1 class="main-title">나의 스트레스<br>대처 동물은?</h1>
+          <p class="subtitle">단 8개의 질문으로 알아보는 나의 스트레스 극복 성향과 마음의 날씨</p>
+          
+          <div class="main-illustration">
+            <div class="emoji-group">
+              <span class="animated-emoji">🦁</span>
+              <span class="animated-emoji">🐨</span>
+              <span class="animated-emoji">🐬</span>
+              <span class="animated-emoji">🦊</span>
+            </div>
+          </div>
 
-# CSS를 통한 Pretendard 폰트 및 스타일 적용 (기존 테마 유지)
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap');
-    html, body, [data-testid="stAppViewContainer"] {
-        font-family: 'Pretendard', sans-serif;
-        background-color: #f8fafc;
-    }
-    div[data-testid="stMetric"] {
-        background-color: white;
-        padding: 20px;
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    </style>
-    """, unsafe_allow_html=True)
+          <div class="action-group">
+            <button id="btn-start" class="btn btn-primary">테스트 시작하기</button>
+            <button id="btn-resume" class="btn btn-secondary hidden">이어서 진행하기</button>
+            <button id="btn-view-history" class="btn btn-link">지난 결과 보기</button>
+          </div>
+        </div>
+      </section>
 
-# 1. 시크릿 파일(Secrets)에서 앱스 스크립트 URL 가져오기
-if "WEBAPP_URL" in st.secrets:
-    API_URL = st.secrets["WEBAPP_URL"]
-else:
-    st.error("스트림릿 Secrets에 'WEBAPP_URL'이 설정되지 않았습니다. 로컬 환경이라면 .streamlit/secrets.toml을 확인하세요.")
-    st.stop()
+      <!-- 2. 검사 진행 스크린 -->
+      <section id="screen-test" class="screen">
+        <div class="test-header">
+          <button id="btn-back" class="btn-icon-back" aria-label="이전 단계로">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
+          <div class="progress-container">
+            <div class="progress-text"><span id="current-question-num">1</span>/8</div>
+            <div class="progress-bar-bg">
+              <div id="progress-bar-fill" class="progress-bar-fill"></div>
+            </div>
+          </div>
+        </div>
 
-# 데이터 불러오기 함수
-def load_data():
-    try:
-        response = requests.get(API_URL)
-        # 이 부분을 status_code == 200 으로 수정했습니다.
-        if response.status_code == 200:
-            return pd.DataFrame(response.json())
-    except Exception as e:
-        st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
-    return pd.DataFrame(columns=["id", "member", "month", "category", "amount"])
+        <div class="test-body">
+          <h2 id="question-text" class="question-title">질문 텍스트가 로드되는 중입니다...</h2>
+          <div class="options-container">
+            <button class="option-card" data-option="A">
+              <div class="option-letter">A</div>
+              <p class="option-text" id="option-a-text">답변 A</p>
+            </button>
+            <button class="option-card" data-option="B">
+              <div class="option-letter">B</div>
+              <p class="option-text" id="option-b-text">답변 B</p>
+            </button>
+          </div>
+        </div>
+      </section>
 
-# 데이터 업로드 함수
-def save_data(entry):
-    try:
-        res = requests.post(API_URL, json=entry)
-        return res.json().get("status") == "success"
-    except Exception as e:
-        st.error(f"데이터 저장 중 오류 발생: {e}")
-        return False
+      <!-- 3. 결과 분석 스크린 -->
+      <section id="screen-result" class="screen">
+        <div class="result-header">
+          <div class="badge success-badge">진단 완료</div>
+          <h2 class="result-title-label">당신의 스트레스 대처 유형은...</h2>
+        </div>
 
-# 헤더 영역
-st.markdown("<h1 style='text-align: center; color: #1e293b; font-weight:700;'>📊 팀 예산 관리 시스템</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align: center; color: #64748b;'>부장님 보고용 월별 예산 취합 및 대시보드</p>", unsafe_allow_html=True)
-st.write("---")
+        <div class="result-body">
+          <div class="result-animal-card">
+            <span id="result-emoji" class="result-emoji">🦁</span>
+            <h3 id="result-name" class="result-animal-name">용감한 사자형</h3>
+            <p id="result-tagline" class="result-tagline">"정면 돌파! 문제를 직면하고 해결해야 직성이 풀리는 스타일"</p>
+          </div>
 
-# 네비게이션 탭 (기존 데이터 입력 / 전체 대시보드 구조 재현)
-tab_input, tab_dashboard = st.tabs(["📝 데이터 입력", "📈 전체 대시보드"])
-
-# 데이터 로드
-df = load_data()
-
-# --- 데이터 입력 탭 ---
-with tab_input:
-    col1, col2 = st.columns([1, 2], gap="large")
-    
-    with col1:
-        st.markdown("### 📝 내역 입력")
-        with st.form("budget_form", clear_on_submit=True):
-            member = st.selectbox("팀원 선택", ["부장님", "팀원1", "팀원2", "팀원3", "팀원4"])
-            month = st.date_input("해당 월", datetime.now()).strftime("%Y-%m")
-            category = st.selectbox("예산 항목", ["수선유지비", "비품", "개량공사"])
-            amount = st.number_input("사용 금액 (원)", min_value=0, step=1000, format="%d")
+          <div class="result-details">
+            <div class="detail-section">
+              <h4>💡 나의 대처 방식 특징</h4>
+              <p id="result-desc">특징 설명글이 표시됩니다.</p>
+            </div>
             
-            submit_button = st.form_submit_button("기록 저장하기", use_container_width=True)
-            
-            if submit_button:
-                if amount <= 0:
-                    st.warning("금액을 정확히 입력해 주세요.")
-                else:
-                    new_entry = {
-                        "id": int(datetime.now().timestamp() * 1000),
-                        "member": member,
-                        "month": month,
-                        "category": category,
-                        "amount": amount
-                    }
-                    if save_data(new_entry):
-                        st.success("예산 데이터가 정상적으로 기록되었습니다.")
-                        st.rerun()
-                    else:
-                        st.error("저장에 실패했습니다.")
-                        
-    with col2:
-        st.markdown("### 📂 최근 입력 내역")
-        if not df.empty:
-            # 보기 좋은 컬럼명으로 변경하여 출력
-            display_df = df[["month", "member", "category", "amount"]].copy()
-            display_df["amount"] = display_df["amount"].apply(lambda x: f"{int(x):,}원")
-            display_df.columns = ["날짜", "팀원", "항목", "금액"]
-            st.dataframe(display_df, use_container_width=True, hide_index=True)
-        else:
-            st.info("등록된 데이터가 없습니다.")
+            <div class="detail-section highlight-box">
+              <h4>🎯 마인드셋 추천 처방</h4>
+              <p id="result-prescription">조언 가이드가 표시됩니다.</p>
+            </div>
+          </div>
 
-# --- 대시보드 탭 ---
-with tab_dashboard:
-    if df.empty:
-        st.info("대시보드를 표시할 데이터가 없습니다. 먼저 데이터를 입력해 주세요.")
-    else:
-        df["amount"] = df["amount"].astype(int)
-        
-        # 상단 핵심 지표 (Cards)
-        total_amount = df["amount"].sum()
-        data_count = len(df)
-        
-        # 이번 달 최대 사용 항목 계산
-        current_month = datetime.now().strftime("%Y-%m")
-        current_month_df = df[df["month"] == current_month]
-        if not current_month_df.empty:
-            top_cat = current_month_df.groupby("category")["amount"].sum().idxmax()
-            top_cat_val = current_month_df.groupby("category")["amount"].sum().max()
-            top_cat_str = f"{top_cat} ({top_cat_val:,}원)"
-        else:
-            top_cat_str = "이번 달 데이터 없음"
-            
-        m_col1, m_col2, m_col3 = st.columns(3)
-        with m_col1:
-            st.metric(label="전체 누적 사용액", value=f"{total_amount:,}원")
-        with m_col2:
-            st.metric(label="이번 달 최대 사용 항목", value=top_cat_str)
-        with m_col3:
-            st.metric(label="데이터 건수", value=f"{data_count}건")
-            
-        st.write(" ")
-        
-        # 차트 영역 (기존 Doughnut, Bar 차트 구현)
-        c_col1, c_col2 = st.columns(2, gap="large")
-        
-        with c_col1:
-            st.markdown("##### 🏠 항목별 예산 분포")
-            cat_df = df.groupby("category")["amount"].sum().reset_index()
-            fig_pie = px.pie(cat_df, values="amount", names="category", hole=0.6,
-                             color_discrete_sequence=['#3b82f6', '#10b981', '#8b5cf6'])
-            fig_pie.update_traces(textinfo='percent+label')
-            fig_pie.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10), height=300)
-            st.plotly_chart(fig_pie, use_container_width=True)
-            
-        with c_col2:
-            st.markdown("##### 👥 팀원별 누적 사용액")
-            mem_df = df.groupby("member")["amount"].sum().reset_index()
-            fig_bar = px.bar(mem_df, x="member", y="amount", labels={"member": "팀원", "amount": "사용 금액"})
-            fig_bar.update_traces(marker_color='#60a5fa')
-            fig_bar.update_layout(margin=dict(t=10, b=10, l=10, r=10), height=300, yaxis={'visible': True, 'showgrid': False})
-            st.plotly_chart(fig_bar, use_container_width=True)
-            
-        # 월별/항목별 요약 테이블 (취합본 피벗 테이블)
-        st.markdown("### 📅 월별/항목별 요약 테이블 (취합본)")
-        
-        # 피벗 테이블 생성
-        pivot_df = df.pivot_table(index="month", columns="category", values="amount", aggfunc="sum", fill_value=0)
-        
-        # 기존 HTML에 있던 모든 항목 열이 안전하게 생성되도록 보장
-        for col in ["수선유지비", "비품", "개량공사"]:
-            if col not in pivot_df.columns:
-                pivot_df[col] = 0
-                
-        # 합계 열 추가 및 정렬
-        pivot_df["합계"] = pivot_df.sum(axis=1)
-        pivot_df = pivot_df.sort_index(ascending=False) # 최신 연월이 위로
-        
-        # 천단위 콤마 포맷팅 변환
-        style_df = pivot_df.copy()
-        for col in style_df.columns:
-            style_df[col] = style_df[col].apply(lambda x: f"{x:,}")
-            
-        st.table(style_df)
+          <div class="action-group vertical-group">
+            <button id="btn-copy-link" class="btn btn-secondary">결과 링크 복사하기</button>
+            <div class="btn-row">
+              <button id="btn-restart" class="btn btn-primary">다시 테스트하기</button>
+              <button id="btn-home" class="btn btn-outline">홈으로</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 4. 지난 기록(History) 스크린 -->
+      <section id="screen-history" class="screen">
+        <div class="history-header">
+          <h2 class="history-title">지난 테스트 기록</h2>
+          <p class="history-subtitle">로컬에 저장된 나의 스트레스 관리 여정</p>
+        </div>
+
+        <div class="history-body">
+          <ul id="history-list" class="history-list">
+            <!-- 동적으로 히스토리 아이템 삽입 예정 -->
+          </ul>
+          
+          <div id="history-empty" class="history-empty hidden">
+            <span class="empty-icon">📂</span>
+            <p>저장된 테스트 기록이 없습니다.<br>첫 테스트를 시작해 보세요!</p>
+          </div>
+        </div>
+
+        <div class="history-footer">
+          <button id="btn-clear-history" class="btn btn-danger">모든 기록 삭제</button>
+          <button id="btn-history-back" class="btn btn-primary">홈으로 돌아가기</button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script src="src/app.js"></script>
+</body>
+</html>
