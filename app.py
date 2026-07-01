@@ -35,7 +35,8 @@ else:
 def load_data():
     try:
         response = requests.get(API_URL)
-        if response.status_size != 0:
+        # 이 부분을 status_code == 200 으로 수정했습니다.
+        if response.status_code == 200:
             return pd.DataFrame(response.json())
     except Exception as e:
         st.error(f"데이터를 불러오는 중 오류가 발생했습니다: {e}")
