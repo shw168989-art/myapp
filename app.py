@@ -27,8 +27,8 @@
           <p class="subtitle">단 8개의 질문으로 알아보는 나의 스트레스 극복 성향과 마음의 날씨</p>
           
           <div class="main-illustration">
-            <div class="emoji-group">
-              <span class="animated-emoji">🦁</span>
+            <div class="emoji-group">            
+st.markdown('<span class="animated-emoji">🦁</span>', unsafe_allow_html=True)
               <span class="animated-emoji">🐨</span>
               <span class="animated-emoji">🐬</span>
               <span class="animated-emoji">🦊</span>
