@@ -118,7 +118,7 @@ st.markdown("""
         border-left: 4px solid #0288d1;
     }
 </style>
-""", unsafe_index=True)
+""", unsafe_allow_html=True))
 
 # 2. 질문 데이터셋 정의 (8개 질문)
 QUESTIONS = [
